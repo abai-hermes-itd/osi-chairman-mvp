@@ -30,3 +30,10 @@ export async function requireAdmin() {
   const user = await getSessionUser()
   return user && user.role === "ADMIN" ? user : null
 }
+
+// Пользователь, привязанный к ОСИ (председатель). Все данные заявок фильтруются по его osiId.
+export async function requireOsiUser() {
+  const user = await getSessionUser()
+  if (!user || !user.osiId) return null
+  return { id: user.id, role: user.role, osiId: user.osiId as string }
+}
