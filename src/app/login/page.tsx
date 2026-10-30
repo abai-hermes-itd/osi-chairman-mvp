@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
@@ -71,6 +72,12 @@ export default function LoginPage() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Входим…" : "Войти"}
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              Нет доступа?{" "}
+              <Link href="/register" className="underline">
+                Подать заявку
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>

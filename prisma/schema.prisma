@@ -18,6 +18,7 @@ model User {
   osiId        String?
   osi          Osi?     @relation(fields: [osiId], references: [id])
   createdAt    DateTime @default(now())
+  passwordTokens PasswordToken[]
 }
 
 // ОСИ / дом (паспорт МКД; зеркалит data/config/house.md)
@@ -53,4 +54,40 @@ model AgentLog {
   action    String   // Что именно сделал
   result    String?  // Результат (успех/текст ошибки)
   createdAt DateTime @default(now())
+}
+
+// Заявка председателя на доступ; проверяется оператором вручную
+model RegistrationRequest {
+  id           String    @id @default(cuid())
+  email        String    // в нижнем регистре
+  name         String    // ФИО председателя
+  phone        String
+  osiBin       String    // БИН ОСИ, 12 цифр
+  osiName      String?
+  city         String?
+  address      String?
+  basis        String?   // основание полномочий: № протокола собрания, дата и т.п.
+  status       String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  rejectReason String?
+  reviewedById String?   // id оператора (User.id), без внешнего ключа
+  reviewedAt   DateTime?
+  userId       String?   // созданный пользователь при одобрении
+  createdAt    DateTime  @default(now())
+
+  @@index([status, createdAt])
+  @@index([email])
+  @@index([osiBin])
+}
+
+// Одноразовые ссылки «задать пароль». В БД хранится только SHA-256 токена.
+model PasswordToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
