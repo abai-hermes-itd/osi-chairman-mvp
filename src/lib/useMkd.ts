@@ -7,7 +7,7 @@ export interface MkdConfig {
   city: string;
   address: string;
   total_flats: number;
-  status: 'PENDING_SETUP' | 'ACTIVE';
+  status: 'PENDING_SETUP' | 'CONFIGURED' | 'ACTIVE';
 }
 
 export function useMkd() {
@@ -16,7 +16,7 @@ export function useMkd() {
 
   const fetchConfig = async () => {
     try {
-      // Прямой запрос к API, который читает твой house.md
+      // Паспорт МКД текущего председателя (из БД; шаблон — data/config/house.md)
       const response = await fetch('/api/config');
       const data = await response.json();
       setConfig(data);
@@ -32,7 +32,7 @@ export function useMkd() {
   }, []);
 
   // Проверка: настроен ли дом (стерильное состояние или нет)
-  const isSetup = !!config?.management_type && config.status === 'ACTIVE';
+  const isSetup = !!config?.management_type && config.status !== 'PENDING_SETUP';
 
   return { config, isSetup, isLoading, refresh: fetchConfig };
 }
