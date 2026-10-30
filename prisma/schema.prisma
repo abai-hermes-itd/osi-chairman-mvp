@@ -32,6 +32,7 @@ model Osi {
   totalFlats     Int?
   status         String   @default("PENDING_SETUP") // PENDING_SETUP, CONFIGURED, ACTIVE
   users          User[]
+  residentRequests ResidentRequest[]
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -90,4 +91,38 @@ model PasswordToken {
   createdAt DateTime  @default(now())
 
   @@index([userId])
+}
+
+// Заявка жильца (принимает председатель). Не путать с RegistrationRequest (заявка на доступ).
+model ResidentRequest {
+  id           String         @id @default(cuid())
+  osiId        String
+  osi          Osi            @relation(fields: [osiId], references: [id])
+  createdById  String         // id пользователя, принявшего заявку (без внешнего ключа)
+  residentName String?
+  apartment    String?
+  entrance     String?
+  category     String         @default("OTHER") // LEAK, ELEVATOR, LIGHTING, GARBAGE, OTHER
+  urgency      String         @default("NORMAL") // LOW, NORMAL, HIGH
+  description  String
+  status       String         @default("NEW") // NEW, IN_PROGRESS, DONE, CANCELLED
+  media        RequestMedia[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([osiId, status, createdAt])
+}
+
+// Фото к заявке. На этапе MVP хранится в базе (сжатое на клиенте); позже заменяется внешним хранилищем.
+model RequestMedia {
+  id        String          @id @default(cuid())
+  requestId String
+  request   ResidentRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  kind      String          @default("BEFORE") // BEFORE, AFTER
+  mimeType  String          // image/jpeg, image/png, image/webp
+  size      Int
+  data      Bytes
+  createdAt DateTime        @default(now())
+
+  @@index([requestId])
 }

@@ -13,6 +13,11 @@ export default async function UserMenu() {
           Заявки на доступ
         </Link>
       )}
+      {user?.osiId && (
+        <Link href="/requests" className="underline">
+          Заявки жильцов
+        </Link>
+      )}
       <Link href="/settings/password" className="underline">
         Сменить пароль
       </Link>
