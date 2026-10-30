@@ -12,9 +12,20 @@ export async function updateMkdConfig(newData: any) {
   fs.writeFileSync(path, matter.stringify(file.content, updatedData));
 
   // 2. Обновляем Neon (Инструмент для аналитики и UI)
+  // Поля house.md в snake_case, в Prisma — camelCase
+  const osiData = {
+    bin: newData.bin || "temp",
+    name: newData.name,
+    managementType: newData.management_type,
+    city: newData.city,
+    address: newData.address,
+    totalFlats: newData.total_flats,
+    status: "CONFIGURED",
+  };
+
   return await prisma.osi.upsert({
-    where: { bin: newData.bin || "temp" },
-    update: newData,
-    create: newData
+    where: { bin: osiData.bin },
+    update: osiData,
+    create: osiData,
   });
 }

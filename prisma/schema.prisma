@@ -8,6 +8,33 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Пользователь кабинета (председатель ОСИ и др.)
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?  // bcrypt-хэш; null, пока пароль не задан
+  name         String?
+  role         String   @default("CHAIRMAN") // CHAIRMAN, ADMIN
+  osiId        String?
+  osi          Osi?     @relation(fields: [osiId], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+// ОСИ / дом (паспорт МКД; зеркалит data/config/house.md)
+model Osi {
+  id             String   @id @default(cuid())
+  bin            String   @unique // БИН; "temp" пока не заполнен
+  name           String?
+  managementType String?  // OSI, KSK, PT
+  city           String?
+  address        String?
+  totalFlats     Int?
+  status         String   @default("PENDING_SETUP") // PENDING_SETUP, CONFIGURED, ACTIVE
+  users          User[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
 // Таблица для хранения документов (сканы актов, фото квитанций)
 model Document {
   id          String   @id @default(cuid())
