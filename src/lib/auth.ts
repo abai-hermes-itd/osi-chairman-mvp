@@ -7,10 +7,12 @@ import { devBypass } from "@/lib/devBypass"
 // Подпись проверяется, затем пользователь перечитывается из БД,
 // поэтому удалённый пользователь теряет доступ сразу.
 export async function getSessionUser() {
-  // Только локально (next dev + DEV_AUTH_BYPASS=1): работаем от имени первого председателя
+  // Только локально (next dev + DEV_AUTH_BYPASS=1): работаем от имени первого пользователя,
+  // привязанного к ОСИ (председатель или оператор с ОСИ), чтобы раздел «Заявки» был доступен
   if (devBypass()) {
     return prisma.user.findFirst({
-      where: { role: "CHAIRMAN" },
+      where: { osiId: { not: null } },
+      orderBy: { createdAt: "asc" },
       select: { id: true, email: true, name: true, role: true, osiId: true },
     })
   }

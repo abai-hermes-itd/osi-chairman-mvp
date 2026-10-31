@@ -14,8 +14,33 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [usePassword, setUsePassword] = useState(false)
+  const [sent, setSent] = useState(false)
 
-  async function onSubmit(e: React.FormEvent) {
+  // Основной способ: ссылка для входа на email
+  async function sendLink(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    try {
+      const res = await fetch("/api/auth/email-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      })
+      if (!res.ok) {
+        toast.error("Не удалось отправить ссылку")
+        return
+      }
+      setSent(true)
+    } catch {
+      toast.error("Нет связи с сервером")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Запасной способ: пароль
+  async function loginWithPassword(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     try {
@@ -38,15 +63,38 @@ export default function LoginPage() {
     }
   }
 
+  if (sent) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <Card className="w-full max-w-sm">
+          <CardHeader>
+            <CardTitle>Проверьте почту</CardTitle>
+            <CardDescription>
+              Если адрес {email} есть в системе, мы отправили на него ссылку для входа. Она действует 15 минут.
+              Проверьте также папку «Спам».
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button variant="outline" className="w-full" onClick={() => setSent(false)}>
+              Отправить ещё раз
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Кабинет председателя ОСИ</CardTitle>
-          <CardDescription>Войдите, чтобы продолжить</CardDescription>
+          <CardDescription>
+            {usePassword ? "Войдите по паролю" : "Мы отправим ссылку для входа на ваш email"}
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={onSubmit} className="space-y-4">
+          <form onSubmit={usePassword ? loginWithPassword : sendLink} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -58,20 +106,31 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Пароль</Label>
-              <Input
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+            {usePassword && (
+              <div className="space-y-2">
+                <Label htmlFor="password">Пароль</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Входим…" : "Войти"}
+              {usePassword
+                ? loading ? "Входим…" : "Войти"
+                : loading ? "Отправляем…" : "Получить ссылку для входа"}
             </Button>
+            <button
+              type="button"
+              className="block w-full text-center text-sm text-muted-foreground underline"
+              onClick={() => setUsePassword((v) => !v)}
+            >
+              {usePassword ? "Войти по ссылке из email" : "Войти по паролю"}
+            </button>
             <p className="text-center text-sm text-muted-foreground">
               Нет доступа?{" "}
               <Link href="/register" className="underline">

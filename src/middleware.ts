@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server"
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session"
 import { devBypass } from "@/lib/devBypass"
 
-// Открыто без входа: вход, подача заявки, установка пароля по ссылке
+// Открыто без входа: вход (пароль и ссылка из email), подача заявки, установка пароля по ссылке
 const PUBLIC_PATHS = [
   "/login",
   "/register",
   "/set-password",
+  "/login/email",
   "/api/auth/login",
+  "/api/auth/email-link",
+  "/api/auth/email-login",
   "/api/auth/set-password",
   "/api/register",
 ]
